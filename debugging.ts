@@ -1,10 +1,10 @@
 // Debugging
-// Elizabeth Hudak
+// Elizabeth Hudak and Makaela Jarnagin
 
 // =============== printNumbers ============================
 let printNumbers : () => void = () => {
-    for (let i=0; i<10; i++) {
-        if (i==0) { //the if statement previously lacked a comparison operator and assigned i to 0 meaning that it would run forever. 
+    for (let i=0; i<=10; i++) { //the intended output ends at 10, but i<10 stops at 9 so change to <=
+        if (i===0) { //the if statement previously lacked a comparison operator and assigned i to 0 meaning that it would run forever. 
             console.log("Zero!");
         }
         else {

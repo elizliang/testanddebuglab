@@ -1,5 +1,5 @@
 // Testing
-// Your name[s] here.
+// Elizabeth Hudak and Makaela Jarnagin
 
 // Super simple testing "framework" by Lea: this will print the results of tests in a (hopefully) easy-to-read way. You should not modify this function.
 interface Function { // apparently TS doesn't include this by default, which is a little wild
@@ -42,41 +42,39 @@ function test<I,O>(functionToTest:(input:I)=>O & {name:string}, input: I, intend
 test(isPalindrome, "racecar", true);
 
 //MJ + Elizabeth Tests
-test(isPalindrome, "bug", false); //example, passes
-test(isPalindrome, "level", true); //example, passes
-test(isPalindrome, 101, true); //example, passes
-test(isPalindrome, true, undefined);// example, passes
-test(isPalindrome, "", true); // example, passes
-test(isPalindrome, null, undefined); // example, passes
-test(isPalindrome, ["r", "a", "r"], undefined); // example, passes
+//Always worked
+test(isPalindrome, "racecar", true);
+test(isPalindrome, "12321", true);
+test(isPalindrome, "été", true);
+test(isPalindrome, "", true);
 
-test(isPalindrome, "Elizabeth", true); //example, fails
-test(isPalindrome, "taco cat", true);  //example, fails
-test(isPalindrome, "Was it a rat I saw?", true); //example, fails
+//failed in first version
+test(isPalindrome, "race car", true); //according to palindrome logic that we found, spaces should not count so this should be a palindrome
+test(isPalindrome, "RaceCar", true); //we decided capitalization should definiteley not interrupt the palindrome
+test(isPalindrome, "😇😇", true); //the first didn't account for emojis
+test(isPalindrome, "A man, a plan, a canal: Panama!", true); //also apparently puntuation doesn't count so we fixed that
 
+//limbo:
+test(isPalindrome, "!<:<!", true); //while we thought that "<>??><" should count as a palindrome, we couldn't find a way without cheating to productively discriminate between symbol patterns and punctuation in sentence like palindromes like the panama one. 
+//Ultimately we thought it would be more important to ignore symbols. This passes as true, but only bc the function turns it into an empty string
 
 // ------------- Improved isPalindrome code ------------------- 
 // TODO: Comment out the original isPalindrome above. Write an improved version of isPalindrome for which the tests all pass. Remember that the improved version should have actual types [that is, not "any"] for the argument and return values.
 
-function isPalindrome(input: unknown): boolean | undefined { //input must be a string now. adding undefined here so the function can correctly return "undefined" if 
-    if (typeof input !== "string" && typeof input !== "number") { // now it can only be a number or a string. i chose to allow numbers since 121 seemed like it should be counted *shrug*
-        return undefined; //if it isn't a string or number, it is undefined
-    }
-    let text = String(input).toLowerCase(); //turn the input into a string (so 12321 -> "12321") also turns to lowercase to "Racecar" still counts
-    let reversed = ""; //now use the same from above to let reversed be an empty string at the moment
+function isPalindrome(input: unknown): boolean | undefined { //keeping input as unknown so that we can handle different inputs in different ways (rejecting vs. converting to string).
+    const normalized = String(input).normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}]/gu, ''); //we looked up how to handle emojis and other unicode characters and discovered these ways to standardize inputs for comparison
+    // we don't 100% know what these work (what is Canonical Decomposition, followed by Canonical Composition ahh), but we know normalize allows characters "to produce a form of the string that will be the same for all canonically equivalent strings." (MDN) so we can support accent marks
+    // to.LowerCase just turns everything lowercase so Aka reads as a palindrome. This one we knew. 
+    // .replace(/[^\p{L}\p{N}]/gu, '') is something we just looked up to find a way to handle puntuation and spaces.
 
-    for (let i = 0; i < text.length; i++) { //for loop iterates through the entire string
-        reversed = text[i] + reversed;  //text[i] gets the letter/num at position i. Putting it before reversed adds that character to the front 
-    }
-    return text === reversed; //if it is not undefined, then return the boolean result
+    const characters = Array.from(normalized); //okay then we can split into Unicode code points (for emojis, etc) and turn it into an array for comparison
+     return normalized === characters.reverse().join(''); // now we can just reverse the characters, join them into a string, and compare
 }
 
 // ============================== countVowels ==================================
 // This function should return the number of vowels in the input. 
-// function countVowels(input: any): number {
-//     let input = String(input); //turns the input into a string, even if there are numbers
+// function countVowels(input: any): any {
 //     let count = 0;
-//     input = input.toLowerCase(); //this works as long as u make sure to case the input to all lowercase, since that's what the if statement checks for
 //     for (let i = 0; i < input.length; i++) {
 //         if (input[i] === 'a' || input[i] === 'e' || input[i] === 'i' || input[i] === 'o' || input[i] === 'u') {
 //             count++;
@@ -91,30 +89,31 @@ function isPalindrome(input: unknown): boolean | undefined { //input must be a s
 test(countVowels, "banana", 3); // example; passes
 
 // MJ and Eliz Tests
-test(countVowels, 1234, 0); //example; passes
-test(countVowels, "Elizabeth", 4); //example; passes
-test(countVowels, "MJ", 0); //example; passes
-test(countVowels, true, undefined); //example; passes
-test(countVowels, "", 0); //example; passes
-test(countVowels, "rhythms", 0); //example; passes
-test(countVowels, "     ", 0); //example; passes
-test(countVowels, "123!? 🦊", 0); //example; passes
-
-test(countVowels, "café", 2); //example: fails
-test(countVowels, "Subaru", 0); //example; fails
-test(countVowels, "Makaela", 5); //example; fails
+test(countVowels, 1234, undefined); //wait orginally we wanted this to come back as 0 but we changed it to only accept strings.  
+test(countVowels, "Elizabeth", 4); //failed in first version bc it was case sensitive (didn't count caps as vowels)
+test(countVowels, "MJ", 0);
+test(countVowels, true, undefined); //failed in first version 
+test(countVowels, "", 0); 
+test(countVowels, "rhythms", 0); 
+test(countVowels, "     ", 0); 
+test(countVowels, "123!? 🦊", 0); 
+test(countVowels, "café", 2); //failed in first version bc of accents
+test(countVowels, "naïve", 3);//failed in first version bc of accents
+test(countVowels, "AEIOU", 5);//failed in first version bc it was case sensitive (didn't count caps as vowels)
+test(countVowels, "rhythm", 0);
+test(countVowels, "", 0);
 
 // ------------- Improved countVowels code -----------------------
 // TODO: Comment out the original countVowels above. Write an improved version of countVowels for which the tests all pass. Remember that the improved version should have actual types [that is, not "any"] for the argument and return values.
-function countVowels(input: unknown): number | undefined { // initially we thought it should just accept strings and numbers and just stringify them, but while testing we realized that the boolean true would then be read as 2 vowels. So we changed it to unknown and then will deal with cases later
-    if (typeof input !== "string" && typeof input !== "number") { //it's later! now we can only accept strings and numbers instead of just stringifying everything
-        return undefined; //otherwise it's undefined
+function countVowels(input: string): number | undefined { //now it only accepts a string, which we thought was fair and is cleaner than accepting a bunch of types and having to make difficult discrimination (eliz thought of arrays and stuff which we could stringify but then that's not fair bc if you had the boolean true, it shouldnt be counted as two vowels since that's not the point of a boolean value)
+   if (typeof input !== 'string') { // At first, we thought we return undefined to handle this, but thought this message was more helpful to theoretical users
+        return undefined;
     }
-    let text = String(input).toLowerCase();//needs to turn to lowercase since that's what the for statement checks for
-    let count = 0;
+    const text = String(input).toLowerCase().normalize("NFD"); //convert the string input to lowercase (since lowercase vowels is what the for loop checks for) and normalize with NFD like we did in the palindrome function to allow accented vowels to count
+    let count = 0; 
 
-    for (let i = 0; i < text.length; i++) { // elizabeth was annoyed by the length of the previous if statement, so she shortened it with .includes
-        if ("aeiou".includes(text[i])) {
+    for (const letter of text) {
+        if ("aeiou".includes(letter)) { //elizabeth got annoyed at how long the previous if statement was, so she shortened it with .includes 
             count++;
         }
     }
@@ -122,7 +121,7 @@ function countVowels(input: unknown): number | undefined { // initially we thoug
 } 
 
 // ============================== checkIfSorted ==================================
-// This function should check whether a list is in order (e.g. numbers are sorted from low to high). 
+//This function should check whether a list is in order (e.g. numbers are sorted from low to high). 
 // let checkIfSorted : (list: any) => any = (list) => {
 //     for (let i = 0; i < list.length-1; i++) {
 //         if (!(list[i] < list[i+1])) { // if item i is not less than item i+1...
@@ -131,10 +130,32 @@ function countVowels(input: unknown): number | undefined { // initially we thoug
 //     }
 //     return true;
 // }
+// ------------- Tests for checkIfSorted: --------------------------
+// TODO: write more test cases for checkIfSorted.
+// At least three should be failing (tests for which the "should" and "actual" results are different) with the above code. 
+test(checkIfSorted, [1,2,3], true); // example; passes
+
+//MJ + Elizabeth Tests
+test(checkIfSorted, [1, 2, 3], true); 
+test(checkIfSorted, [-8, -3, 0], true);
+test(checkIfSorted, [1, 1, 2], true);// failed on first try
+test(checkIfSorted, [7, 7, 7], true); // failed on first try
+test(checkIfSorted, [3, 2, 1], false);
+test(checkIfSorted, [1, 5, 2], false);
+test(checkIfSorted, [], true);
+test(checkIfSorted, [42], true);
+test(checkIfSorted, true, undefined); // failed on first try
+test(checkIfSorted, 123, undefined); // failed on first try
+test(checkIfSorted, "123", undefined); // failed on first try
+test(checkIfSorted, [1, "two", 3], undefined); // failed on first try
+test(checkIfSorted, [1, false, 3], undefined); // failed on first try
+test(checkIfSorted, [2, 4, 6, 8], true);
+test(checkIfSorted, [3, 3, 3], true); // failed on first try
 
 // ------------- Improved checkIfSorted code -----------------------
 // TODO: Comment out the original checkIfSorted above. Write an improved version of checkIfSorted for which the tests all pass. Remember that the improved version should have actual types [that is, not "any"] for the argument and return values.
-let checkIfSorted = (list: unknown): boolean | undefined => { //so we can return undefined if someone inputs a different type, the list is unknwon for now
+function checkIfSorted(list: unknown): boolean | undefined { //so we can return undefined if someone inputs a different type, the list is unknown for now
+    // also changed the the syntax because the order didn't work before
     if (!Array.isArray(list) || //return undefined if it isn't an array or contains a non-number.
         !list.every(item => typeof item === "number")) {
         return undefined;
@@ -144,36 +165,15 @@ let checkIfSorted = (list: unknown): boolean | undefined => { //so we can return
             return false;
         }
     }
-
     return true;
-};
-
-// ------------- Tests for checkIfSorted: --------------------------
-// TODO: write more test cases for checkIfSorted.
-// At least three should be failing (tests for which the "should" and "actual" results are different) with the above code. 
-test(checkIfSorted, [1,2,3], true); // example; passes
- 
-//MJ + Elizabeth Tests
-test(checkIfSorted, [1, 2, 3], true); //passes
-test(checkIfSorted, [-8, -3, 0], true);//passes
-test(checkIfSorted, [1, 1, 2], true);//passes
-test(checkIfSorted, [7, 7, 7], true);//passes
-test(checkIfSorted, [3, 2, 1], false);//passes
-test(checkIfSorted, [1, 5, 2], false);//passes
-test(checkIfSorted, [], true);//passes
-test(checkIfSorted, [42], true);//passes
-test(checkIfSorted, true, undefined);//passes
-test(checkIfSorted, 123, undefined);//passes
-test(checkIfSorted, "123", undefined);//passes
-test(checkIfSorted, [1, "two", 3], undefined);//passes
-test(checkIfSorted, [1, false, 3], undefined);//passes
-
-test(checkIfSorted, [2, 4, 6, 8], false); //fails
-test(checkIfSorted, [3, 3, 3], false); //fails
-test(checkIfSorted, "🦊", true); //fails
+}
 
 // ========================= Credits =======================================
 // As always: list any resources you used to complete this homework, such as your peers, online or printed documentation, text sources, TAs, office hours.
 
 // Elizabeth had been very familiar with a lot of these little puzzles from freshman year CS lab class 🫠 so it was actually helpful and she could teach MJ along the way.
 // Also, Elizabeth used this resource to figure out how to shorten the contains vowels functionhttps://www.geeksforgeeks.org/typescript/typescript-array-includes-method/
+// Other resources:
+// https://schalkneethling.com/posts/unicode-character-class-escapes-a-javascript-hidden-superpower/
+//https://www.ituonline.com/it-glossary/palindrome/
+//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize help understand normalizing
